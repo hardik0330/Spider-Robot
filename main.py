@@ -12,48 +12,64 @@ PORT3 = 8083
 PORT4 = 8084
 
 
-def sock1():
+def sock1(data):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s1:
-        s1.bind((HOST, PORT1))
-        s1.listen(5)
-        conn1, addr1 = s1.accept()
-        print('Got connection from', addr1)
+        if data == "1":
+            s1.bind((HOST, PORT1))
+            s1.listen(5)
+            global conn1, addr1
+            conn1, addr1 = s1.accept()
+            print('Got connection from', addr1)
+        else:
+            conn1.send(data.encode())
 
 
-def sock2():
+def sock2(data):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s2:
-        s2.bind((HOST, PORT2))
-        s2.listen(5)
-        conn2, addr2 = s2.accept()
-        print('Got connection from', addr2)
+        if data == "1":
+            s2.bind((HOST, PORT2))
+            s2.listen(5)
+            global conn2, addr2
+            conn2, addr2 = s2.accept()
+            print('Got connection from', addr2)
+        else:
+            conn2.send(data.encode())
 
 
-def sock3():
+def sock3(data):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s3:
-        s3.bind((HOST, PORT3))
-        s3.listen(5)
-        conn3, addr3 = s3.accept()
-        print('Got connection from', addr3)
+        if data == "1":
+            s3.bind((HOST, PORT3))
+            s3.listen(5)
+            global conn3, addr3
+            conn3, addr3 = s3.accept()
+            print('Got connection from', addr3)
+        else:
+            conn3.send(data.encode())
 
 
-def sock4():
+def sock4(data):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s4:
-        s4.bind((HOST, PORT4))
-        s4.listen(5)
-        conn4, addr4 = s4.accept()
-        print('Got connection from', addr4)
+        if data == "1":
+            s4.bind((HOST, PORT4))
+            s4.listen(5)
+            global conn4, addr4
+            conn4, addr4 = s4.accept()
+            print('Got connection from', addr4)
+        else:
+            conn4.send(data.encode())
 
 
 def send_data(data, marker):
     message = str(data)
     if marker == 211:
-        sock1().conn1.send(message.encode())
+        sock1(message)
     elif marker == 123:
-        sock2().conn2.send(message.encode())
+        sock2(message)
     elif marker == 177:
-        sock3().conn3.send(message.encode())
+        sock3(message)
     elif marker == 89:
-        sock4().conn4.send(message.encode())
+        sock4(message)
     print(message)
 
 
@@ -106,20 +122,20 @@ def orientation(img, top_left, top_right, ids):
     d1 = 250.0
     d2 = 250.0
     orient = ""
-    if abs(x2 - x1) <= 20:
+    if abs(x2 - x1) <= 15:
         if y1 > y2:
             orient = "west"
         elif y2 > y1:
             orient = "east"
     elif (x2 - x1) > 0:     # upright
-        if abs(y2 - y1) <= 20:
+        if abs(y2 - y1) <= 15:
             orient = "north"
         elif (y2 > y1):
             orient = "ne"
         elif (y1 > y2):
             orient = "nw"
     elif (x2 - x1) < 0:
-        if abs(y2 - y1) <= 20:
+        if abs(y2 - y1) <= 15:
             orient = "south"
         elif (y1 > y2):
             orient = "sw"
@@ -131,96 +147,165 @@ def orientation(img, top_left, top_right, ids):
     # destination = d1, d2
     if abs(s1 == d1) & abs(s2 == d2):
         data = 'Stop'
-    # north ne nw
+    # north
     elif orient == "north":
-        if abs(s1 - d1) <= 10:
+        if abs(s1 - d1) <= 15:
             if s2 > d2:
                 data = 'for'
             else:
-                data = 'back'
+                data = 'rev'
+        elif s1 < d1 and abs(s2 - d2) > 15 and s2 > d2:
+            data = "frt"
+        elif s1 > d1 and abs(s2 - d2) > 15 and s2 > d2:
+            data = "flt"
+        elif d1 < s1 and abs(s2 - d2) > 15 and d2 > s2:
+            data = "blt"
+        elif d1 > s1 and abs(s2 - d2) > 15 and d2 > s2:
+            data = 'brt'
         elif s1 < d1:
-            data = 'right'
+            data = 'rt'
         elif s1 > d1:
-            data = 'left'
+            data = 'lt'
+    # nw
     elif orient == "nw":
-        if abs(s1 - d1) <= 10:
+        if s1 > d1 and s2 > d2:
+            data = "for"
+        elif s1 < d1 and s2 > d2 and abs(s2 - d2) <= 15:
+            data = 'rt'
+        elif d1 > s1 and d2 > s2:
+            data = 'rev'
+        elif d1 < s1 and d2 > s2 and abs(s2 - d2) <= 15:
+            data = "lt"
+        if abs(s1 - d1) <= 15:
             if s2 > d2:
-                data = 'fleft'
+                data = 'flt'
             else:
                 data = 'brt'
         elif s1 < d1:
-            data = 'frt'
+            data = 'blt'
         elif s1 > d1:
-            data = 'bleft'
+            data = 'frt'
+    # ne
     elif orient == "ne":
-        if abs(s1 - d1) <= 10:
+        if s1 < d1 and s2 > d2:
+            data = "for"
+        elif d1 < s1 and d2 > s2:
+            data = "rev"
+        elif d1 > s1 and abs(s2 - d2) <= 15 and d2 > s2:
+            data = 'rt'
+        elif s1 > d1 and abs(s2 - d2) <= 15 and s2 > d2:
+            data = "lt"
+        elif abs(s1 - d1) <= 15:
             if s2 > d2:
                 data = 'frt'
             else:
-                data = 'bleft'
+                data = 'blt'
         elif s1 < d1:
             data = 'brt'
         elif s1 > d1:
-            data = 'fleft'
-    # south sw se
+            data = 'flt'
+    # south
     elif orient == "south":
-        if abs(s1 - d1) <= 10:
+        if abs(s1 - d1) <= 15:
             if s2 > d2:
-                data = 'back'
+                data = 'rev'
             else:
                 data = 'for'
+        elif s1 < d1 and abs(s2 - d2) > 15 and s2 > d2:
+            data = "blt"
+        elif s1 > d1 and abs(s2 - d2) > 15 and s2 > d2:
+            data = "brt"
+        elif d1 < s1 and abs(s2 - d2) > 15 and d2 > s2:
+            data = "frt"
+        elif d1 > s1 and abs(s2 - d2) > 15 and d2 > s2:
+            data = 'flt'
         elif s1 < d1:
-            data = 'left'
+            data = 'lt'
         elif s1 > d1:
-            data = 'right'
+            data = 'rt'
+    # se
     elif orient == "se":
-        if abs(s1 - d1) <= 10:
-            if s2 > d2:
-                data = 'fleft'
+        if s1 < d1 and s2 < d2:
+            data = "for"
+        elif s1 > d1 and s2 < d2 and abs(s2 - d2) <= 15:
+            data = 'rt'
+        elif d1 < s1 and d2 < s2:
+            data = 'rev'
+        elif d1 > s1 and d2 < s2 and abs(s2 - d2) <= 15:
+            data = "lt"
+        if abs(s1 - d1) <= 15:
+            if s2 < d2:
+                data = 'flt'
             else:
                 data = 'brt'
+        elif s1 > d1:
+            data = 'blt'
         elif s1 < d1:
             data = 'frt'
-        elif s1 > d1:
-            data = 'bleft'
+    # sw
     elif orient == "sw":
-        if abs(s1 - d1) <= 10:
-            if s2 > d2:
+        if s1 > d1 and s2 < d2:
+            data = "for"
+        elif d1 > s1 and d2 < s2:
+            data = "rev"
+        elif d1 < s1 and abs(s2 - d2) <= 15 and d2 < s2:
+            data = 'rt'
+        elif s1 < d1 and abs(s2 - d2) <= 15 and s2 < d2:
+            data = "lt"
+        elif abs(s1 - d1) <= 15:
+            if s2 < d2:
                 data = 'frt'
             else:
-                data = 'bleft'
-        elif s1 < d1:
-            data = 'brt'
+                data = 'blt'
         elif s1 > d1:
-            data = 'fleft'
-    # east and west
+            data = 'brt'
+        elif s1 < d1:
+            data = 'flt'
+    # east
     elif orient == "east":
-        if abs(s2 - d2) <= 10:
+        if abs(s2 - d2) <= 15:
             if s1 < d1:
                 data = 'for'
             else:
-                data = 'back'
-        elif s2 < d2:
-            data = 'left'
+                data = 'rev'
+        elif s1 < d1 and abs(s2 - d2) > 15 and s2 < d2:
+            data = "frt"
+        elif s1 < d1 and abs(s2 - d2) > 15 and s2 > d2:
+            data = "flt"
+        elif d1 < s1 and abs(s2 - d2) > 15 and d2 < s2:
+            data = "blt"
+        elif d1 < s1 and abs(s2 - d2) > 15 and d2 > s2:
+            data = 'brt'
         elif s2 > d2:
-            data = 'right'
+            data = 'rt'
+        elif s2 < d2:
+            data = 'lt'
+    # west
     elif orient == "west":
-        if abs(s2 - d2) <= 10:
+        if abs(s2 - d2) <= 15:
             if s1 < d1:
-                data = 'back'
-            else:
                 data = 'for'
+            else:
+                data = 'rev'
+        elif s1 > d1 and s2 > d2:
+            data = "frt"
+        elif s1 > d1 and s2 < d2:
+            data = "flt"
+        elif d1 > s1 and d2 > s2:
+            data = "blt"
+        elif d1 > s1 and d2 < s2:
+            data = 'brt'
         elif s2 < d2:
-            data = 'right'
+            data = 'rt'
         elif s2 > d2:
-            data = 'left'
+            data = 'lt'
     send_data(data, ids)
 
 
-t1 = Thread(target=sock1)
-t2 = Thread(target=sock2)
-t3 = Thread(target=sock3)
-t4 = Thread(target=sock4)
+t1 = Thread(target=sock1, args=("1",))
+t2 = Thread(target=sock2, args=("1",))
+t3 = Thread(target=sock3, args=("1",))
+t4 = Thread(target=sock4, args=("1",))
 t1.start()
 t2.start()
 t3.start()
@@ -229,7 +314,7 @@ t1.join()
 t2.join()
 t3.join()
 t4.join()
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(2)
 dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
 while True:
     ret, frame = cap.read()
